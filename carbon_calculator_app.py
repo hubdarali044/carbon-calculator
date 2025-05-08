@@ -54,7 +54,7 @@ else:
             st.success("Calculation Complete!")
             st.dataframe(df)
                     # 📊 Visualizations
-        st.subheader("📈 Emissions Visualizations")
+    st.subheader("📈 Emissions Visualizations")
 
         # Line Chart if 'date' exists
         if 'date' in df.columns:
