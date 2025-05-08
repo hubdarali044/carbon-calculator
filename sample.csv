@@ -1,0 +1,4 @@
+date,electricity,gas,distance,fuel_type,fuel_efficiency
+2024-01-01,100,30,150,gasoline,12
+2024-02-01,120,40,200,diesel,10
+2024-03-01,90,25,100,gasoline,14
