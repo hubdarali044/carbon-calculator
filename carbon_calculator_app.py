@@ -6,7 +6,7 @@ import os
 st.set_page_config(page_title="Carbon Calculator", layout="centered")
 st.title("🌍 Simple Carbon Consumption Calculator")
 
-# Define emission factors
+# Define emission factors 
 EMISSION_FACTORS = {
     'electricity': 0.233,
     'gas': 2.02,
