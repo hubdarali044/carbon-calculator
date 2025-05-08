@@ -53,5 +53,25 @@ else:
             df = calculate_emissions(df)
             st.success("Calculation Complete!")
             st.dataframe(df)
+                    # 📊 Visualizations
+        st.subheader("📈 Emissions Visualizations")
+
+        # Line Chart if 'date' exists
+        if 'date' in df.columns:
+            try:
+                df['date'] = pd.to_datetime(df['date'])
+                df.set_index('date', inplace=True)
+                st.line_chart(df[['electricity_emission', 'gas_emission', 'transport_emission', 'total_emission']])
+            except:
+                st.warning("⚠️ Could not parse 'date' column for time series chart.")
+
+        # Bar Chart of emissions per row
+        st.bar_chart(df[['electricity_emission', 'gas_emission', 'transport_emission']])
+
+        # Pie Chart of total emissions by category
+        totals = df[['electricity_emission', 'gas_emission', 'transport_emission']].sum()
+        st.subheader("🥧 Emission Share by Category")
+        st.pyplot(totals.plot.pie(autopct='%1.1f%%', ylabel='', figsize=(5, 5)).get_figure())
+
         except Exception as e:
             st.error(f"Error: {e}")
