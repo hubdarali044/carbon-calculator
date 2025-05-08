@@ -1,10 +1,12 @@
 
 import streamlit as st
 import pandas as pd
+import os
 
 st.set_page_config(page_title="Carbon Calculator", layout="centered")
 st.title("🌍 Simple Carbon Consumption Calculator")
 
+# Define emission factors
 EMISSION_FACTORS = {
     'electricity': 0.233,
     'gas': 2.02,
@@ -12,9 +14,14 @@ EMISSION_FACTORS = {
     'gasoline': 2.31,
 }
 
+# Session-based data storage
+if 'history' not in st.session_state:
+    st.session_state['history'] = pd.DataFrame()
+
 st.sidebar.header("Choose Input Mode")
 mode = st.sidebar.radio("Mode", ["Manual Input", "Upload CSV"])
 
+# Function to calculate emissions
 def calculate_emissions(df):
     df['electricity_emission'] = df['electricity'] * EMISSION_FACTORS['electricity']
     df['gas_emission'] = df['gas'] * EMISSION_FACTORS['gas']
@@ -39,6 +46,7 @@ if mode == "Manual Input":
             'fuel_efficiency': fuel_efficiency,
         }])
         df = calculate_emissions(df)
+        st.session_state['history'] = pd.concat([st.session_state['history'], df], ignore_index=True)
         st.success(f"Total Emissions: {df['total_emission'].iloc[0]:.2f} kg CO₂")
         st.dataframe(df)
 
@@ -51,27 +59,35 @@ else:
         try:
             df = pd.read_csv(uploaded_file)
             df = calculate_emissions(df)
+            st.session_state['history'] = pd.concat([st.session_state['history'], df], ignore_index=True)
             st.success("Calculation Complete!")
             st.dataframe(df)
-                    # 📊 Visualizations
-    st.subheader("📈 Emissions Visualizations")
 
-        # Line Chart if 'date' exists
-        if 'date' in df.columns:
-            try:
-                df['date'] = pd.to_datetime(df['date'])
-                df.set_index('date', inplace=True)
-                st.line_chart(df[['electricity_emission', 'gas_emission', 'transport_emission', 'total_emission']])
-            except:
-                st.warning("⚠️ Could not parse 'date' column for time series chart.")
+            # 📊 Visualizations
+            st.subheader("📈 Emissions Visualizations")
 
-        # Bar Chart of emissions per row
-        st.bar_chart(df[['electricity_emission', 'gas_emission', 'transport_emission']])
+            # Line Chart if 'date' exists
+            if 'date' in df.columns:
+                try:
+                    df['date'] = pd.to_datetime(df['date'])
+                    df.set_index('date', inplace=True)
+                    st.line_chart(df[['electricity_emission', 'gas_emission', 'transport_emission', 'total_emission']])
+                except:
+                    st.warning("⚠️ Could not parse 'date' column for time series chart.")
 
-        # Pie Chart of total emissions by category
-        totals = df[['electricity_emission', 'gas_emission', 'transport_emission']].sum()
-        st.subheader("🥧 Emission Share by Category")
-        st.pyplot(totals.plot.pie(autopct='%1.1f%%', ylabel='', figsize=(5, 5)).get_figure())
+            # Bar Chart
+            st.bar_chart(df[['electricity_emission', 'gas_emission', 'transport_emission']])
+
+            # Pie Chart
+            totals = df[['electricity_emission', 'gas_emission', 'transport_emission']].sum()
+            st.subheader("🥧 Emission Share by Category")
+            st.pyplot(totals.plot.pie(autopct='%1.1f%%', ylabel='', figsize=(5, 5)).get_figure())
 
         except Exception as e:
             st.error(f"Error: {e}")
+
+# Show stored data history
+if not st.session_state['history'].empty:
+    st.subheader("📦 Emissions History (This Session)")
+    st.dataframe(st.session_state['history'])
+
